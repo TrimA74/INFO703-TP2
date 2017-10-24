@@ -28,7 +28,7 @@ precedence left PLUS, MOINS;
 precedence left MUL, DIV;
 
 /* grammaire */
-// on une liste d'expressions (avec au moins une expression)
+// on a une liste d'expressions (avec au moins une expression)
 liste_expr	::= expr liste_expr 
 			  | expr  
 			  ;
