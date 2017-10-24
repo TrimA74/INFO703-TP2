@@ -23,12 +23,16 @@ import java_cup.runtime.Symbol;
 
 chiffre 	= [0-9]
 espace 		= \s
-
+let			= "let"|"LET"
+// un identifiant commence par une lettre suivit d'un charactere alphanumerique (lettre/chiffre/underscore)
+ident		= [:letter:]\w*
 %% 
 /* ------------------------Section des Regles Lexicales----------------------*/
 
 /* regles */
 
+{let}		{ return new Symbol(sym.LET) ;}
+"="			{ return new Symbol(sym.EGAL) ;}
 "("			{ return new Symbol(sym.PAR_G) ;}
 ")"			{ return new Symbol(sym.PAR_D) ;}
 "+"			{ return new Symbol(sym.PLUS) ;}
@@ -37,5 +41,6 @@ espace 		= \s
 "*"			{ return new Symbol(sym.MUL) ;}
 ";"			{ return new Symbol(sym.SEMI) ;}
 {chiffre}+	{ return new Symbol(sym.ENTIER, new Integer(yytext())) ;}
+{ident}		{ return new Symbol(sym.IDENT, yytext()) ;}
 {espace} 	{  }
 .			{ return new Symbol(sym.ERROR) ;}
