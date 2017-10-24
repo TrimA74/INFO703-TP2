@@ -1,0 +1,50 @@
+/* package et imports */
+package fr.usmb.m1isc.compilation.tp1;
+import java_cup.runtime.Symbol;
+
+/* inclusion du code */
+
+action code {: 
+    // pour utilisation dans les actions (classe action)
+:};
+
+ 
+parser code {:
+    // pour le parser (redefinition de la methode reportant les erreurs d'analyse)
+:};
+
+ init with {:
+    //	initialisation du parser
+:};
+
+/* symboles terminaux */
+terminal PLUS, MOINS, MUL, DIV, PAR_G, PAR_D, SEMI, ERROR; 
+terminal Integer ENTIER;
+/* non terminaux */
+non terminal liste_expr, expr;
+non terminal Integer expression ;
+
+precedence left PLUS, MOINS;
+precedence left MUL, DIV;
+
+/* grammaire */
+// on a une liste d'expressions (avec au moins une expression)
+liste_expr	::= expr liste_expr 
+			  | expr  
+			  ;
+// chaque expression arithmetique est terminee par un point virgule (SEMI)
+expr 		::= expression:e SEMI   {: System.out.println("val: "+e); :}
+			  | error SEMI
+			  ;
+expression 	::= ENTIER:e                            {: RESULT = e ; :}
+			  | expression:e1 PLUS expression:e2    {: RESULT = e1+e2 ; :}
+			  | expression:e1 MOINS expression:e2   {: RESULT = e1-e2 ; :}
+			  | expression:e1 MUL expression:e2     {: RESULT = e1*e2 ; :}
+			  | expression:e1 DIV expression:e2     {: RESULT = e1/e2 ; :}
+			  | PAR_G expression:e PAR_D            {: RESULT = e ; :}
+			  ;
+
+
+
+
+
