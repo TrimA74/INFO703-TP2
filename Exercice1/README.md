@@ -3,7 +3,7 @@
 ## Evaluateur d'expressions arithmétiques infixées sur les nombres entiers.
 
 ### Analyse lexicale
-Source pour l'analyseur lexical (JFlex) : *src/main/jflex/AnalyseurLexical.flex*
+Source pour l'analyseur lexical (JFlex) : *[src/main/jflex/AnalyseurLexical.flex](src/main/jflex/AnalyseurLexical.flex)*
 
 On reconnait les différents mots du langage (lexème) : 
 - opérateurs arithmétiques : +, -, /, *
@@ -14,7 +14,7 @@ On reconnait les différents mots du langage (lexème) :
 
 
 ### Analyse syntaxique
-Source de l'analyseur syntaxique : *src/main/cup/AnalyseurSyntaxique.cup*
+Source de l'analyseur syntaxique : *[src/main/cup/AnalyseurSyntaxique.cup](src/main/cup/AnalyseurSyntaxique.cup)*
 
 Il s'agit de reconnaître la syntaxe (grammaire du langage).
 Il travaille à partir des lexèmes (token) qui remontent de l'analyseur lexical. 
