@@ -26,6 +26,10 @@ espace 		= \s
 let			= "let"|"LET"
 // un identifiant commence par une lettre suivit d'un charactere alphanumerique (lettre/chiffre/underscore)
 ident		= [:letter:]\w*
+comment1	= "//".*					 // commentaire uniligne
+comment2	= "/*"([^*]|("*"[^/]))*"/*"  // commentaire multiligne
+comment	= {comment1}|{comment2}	
+
 %% 
 /* ------------------------Section des Regles Lexicales----------------------*/
 
@@ -42,5 +46,6 @@ ident		= [:letter:]\w*
 ";"			{ return new Symbol(sym.SEMI) ;}
 {chiffre}+	{ return new Symbol(sym.ENTIER, new Integer(yytext())) ;}
 {ident}		{ return new Symbol(sym.IDENT, yytext()) ;}
-{espace} 	{  }
+{comment}	{ /*commentaire : pas d'action*/ }
+{espace} 	{ /*espace : pas d'action*/ }
 .			{ return new Symbol(sym.ERROR) ;}
