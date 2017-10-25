@@ -66,3 +66,16 @@ affectation ::= LET IDENT:nom EGAL expression:e   {: vars.put(nom,e); RESULT = e
 expression ::= IDENT:nom  {: RESULT = vars.get(nom) ; :}
 ```
 
+#### Gestion des erreurs d'évaluation (variable indéfinie) : 
+En cas d'une erreur lors d'une affectation, la variable n'est pas modifiée.
+```
+affectation ::= LET IDENT:nom EGAL expression:e   {: if (! erreur) vars.put(nom,e); RESULT = e; :}
+```
+
+Si on utilise une variable qui n'a pas encore été définie dans une expression, 
+l'évaluation est suspendue pour cause d'erreur jusqu'à la fin de l'expression. 
+```
+expression ::= IDENT:nom  {: if(vars.get(nom)!=null) { RESULT = vars.get(nom); } 
+                             else { RESULT = 0; erreur=true; System.err.println("Erreur variable indefinie"); } :}
+```
+

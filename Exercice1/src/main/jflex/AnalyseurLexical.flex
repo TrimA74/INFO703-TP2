@@ -39,5 +39,5 @@ mod 		= "mod"|"MOD"
 "*"			{ return new Symbol(sym.MUL) ;}
 ";"			{ return new Symbol(sym.SEMI) ;}
 {chiffre}+	{ return new Symbol(sym.ENTIER, new Integer(yytext())) ;}
-{espace} 	{  }
+{espace} 	{ /*espace : pas d'action*/ }
 .			{ return new Symbol(sym.ERROR) ;}
