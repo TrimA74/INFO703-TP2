@@ -6,6 +6,7 @@ import java_cup.runtime.Symbol;
 
 action code {: 
     // pour utilisation dans les actions (classe action)
+	private boolean erreur = false;
 :};
 
  
@@ -34,20 +35,19 @@ liste_expr	::= expr liste_expr
 			  | expr  
 			  ;
 // chaque expression arithmetique est terminee par un point virgule (SEMI)
-expr 		::= expression:e SEMI   {: System.out.println("val: "+e); :}
-			  | error SEMI
+expr 		::= expression:e SEMI   {: if (! erreur) System.out.println("val: "+e); erreur = false; :}
+			  | error SEMI			{: erreur = false; :}
 			  ;
 expression 	::= ENTIER:e                            {: RESULT = e ; :}
 			  | expression:e1 PLUS expression:e2    {: RESULT = e1+e2 ; :}
 			  | expression:e1 MOINS expression:e2   {: RESULT = e1-e2 ; :}
 			  | MOINS expression:e   				{: RESULT = -e ; :} 	%prec MOINS_UNAIRE
 			  | expression:e1 MUL expression:e2     {: RESULT = e1*e2 ; :}
-			  | expression:e1 DIV expression:e2     {: RESULT = e1/e2 ; :}
-			  | expression:e1 MOD expression:e2     {: RESULT = e1%e2 ; :}
+			  | expression:e1 DIV expression:e2     {: if (erreur) { RESULT= 0; } 
+													   else if (e2 == 0) { RESULT = 0; erreur=true; System.err.println("Erreur division par zero"); } 
+													   else { RESULT = e1/e2; } :}
+			  | expression:e1 MOD expression:e2     {: if (erreur) { RESULT= 0; } 
+													   else if (e2 == 0) { RESULT = 0; erreur=true; System.err.println("Erreur division par zero"); } 
+													   else { RESULT = e1%e2; } :}
 			  | PAR_G expression:e PAR_D            {: RESULT = e ; :}
 			  ;
-
-
-
-
-
