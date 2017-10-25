@@ -1,11 +1,14 @@
 /* package et imports */
 package fr.usmb.m1isc.compilation.tp1;
 import java_cup.runtime.Symbol;
+import java.util.HashMap;
 
 /* inclusion du code */
 
 action code {: 
     // pour utilisation dans les actions (classe action)
+	// HashMap pour la gestion des variables
+	private HashMap<String,Integer> vars = new HashMap<>();
 :};
 
  
@@ -18,11 +21,12 @@ parser code {:
 :};
 
 /* symboles terminaux */
-terminal PLUS, MOINS, MUL, DIV, PAR_G, PAR_D, SEMI, ERROR; 
+terminal PLUS, MOINS, MUL, DIV, PAR_G, PAR_D, SEMI, LET, EGAL, ERROR; 
 terminal Integer ENTIER;
+terminal String IDENT;
 /* non terminaux */
 non terminal liste_expr, expr;
-non terminal Integer expression ;
+non terminal Integer expression, affectation ;
 
 precedence left PLUS, MOINS;
 precedence left MUL, DIV;
@@ -34,14 +38,20 @@ liste_expr	::= expr liste_expr
 			  ;
 // chaque expression arithmetique est terminee par un point virgule (SEMI)
 expr 		::= expression:e SEMI   {: System.out.println("val: "+e); :}
+			  | affectation:v SEMI  {: System.out.println("val: "+v); :}
 			  | error SEMI
 			  ;
+			  
+affectation ::= LET IDENT:nom EGAL expression:e 	{: vars.put(nom,e); RESULT = e; :}
+              ;
+
 expression 	::= ENTIER:e                            {: RESULT = e ; :}
 			  | expression:e1 PLUS expression:e2    {: RESULT = e1+e2 ; :}
 			  | expression:e1 MOINS expression:e2   {: RESULT = e1-e2 ; :}
 			  | expression:e1 MUL expression:e2     {: RESULT = e1*e2 ; :}
 			  | expression:e1 DIV expression:e2     {: RESULT = e1/e2 ; :}
 			  | PAR_G expression:e PAR_D            {: RESULT = e ; :}
+			  | IDENT:nom                          	{: RESULT = vars.get(nom) ; :}
 			  ;
 
 
