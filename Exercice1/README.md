@@ -80,7 +80,7 @@ Pour calculer les valeur associées au symboles non terminaux, on ajoute des act
 `expression ::= expression:e1 PLUS expression:e2 {: RESULT = e1+e2 ; :} `
 
 On ajoute aussi une action semantique pour afficher la valeur finale de l'expression : 
-`expr`::= expression:e SEMI {: System.out.println("val: "+e); :}
+`expr ::= expression:e SEMI {: System.out.println("val: "+e); :}`
 ```
 /* grammaire */
 // on a une liste d'expressions (avec au moins une expression)
@@ -103,3 +103,89 @@ expression ::= ENTIER:e                            {: RESULT = e ; :}
 La règle `expr ::= error SEMI` permet de gérér les erreurs syntaxiques en définissant un point de reprise d'erreur 
 après l'obtention d'un point virgule.
 
+### Prise en compte du moins unaire
+Le moins unaire pose un problème particulier du fait qu'on utilise le même toket que pour l'opérateur binaire moins.
+
+On peut se résoudre en ajoutant ue règle de priorité spécifique : 
+```
+precedence left PLUS, MOINS;
+precedence left MUL, DIV;
+precedence left MOINS_UNAIRE;
+```
+On précise ensuite au niveau de la règle de réécriture la priorité à utitilser :
+```
+expression ::= ENTIER:e                            {: RESULT = e ; :}
+             | expression:e1 PLUS expression:e2    {: RESULT = e1+e2 ; :}
+             | expression:e1 MOINS expression:e2   {: RESULT = e1-e2 ; :}
+             | MOINS expression:e                  {: RESULT = -e ; :}      %prec MOINS_UNAIRE
+             ...
+```
+
+#### Gestion des erreurs d'évaluation (division par zéro)
+Pour éviter que l'interpréteur s'arrête lors d'une erreur d'execution (division par zéro par exemple), 
+on peut tester si la valeur est différente de zéro avant d'effectuer l'opération. 
+Dans le cas contraire on suspend l'évaluation tant qu'on est pas arrivé à un point de reprise d'erreur (obtention d'un point virgule).
+
+À cette fin on peut ajouter un booléen dans la partie `action code` : 
+```
+action code {: 
+    // pour utilisation dans les actions (classe action)
+	private boolean erreur = false;
+:};
+```
+qu'on utilisera dans les actions sémantiques des règles de la grammaire : 
+```
+/* package et imports */
+package fr.usmb.m1isc.compilation.tp1;
+import java_cup.runtime.Symbol;
+
+/* inclusion du code */
+
+action code {: 
+    // pour utilisation dans les actions (classe action)
+	private boolean erreur = false;
+:};
+
+ 
+parser code {:
+    // pour le parser (redefinition de la methode reportant les erreurs d'analyse)
+:};
+
+ init with {:
+    //	initialisation du parser
+:};
+
+/* symboles terminaux */
+terminal PLUS, MOINS, MOINS_UNAIRE, MUL, DIV, MOD, PAR_G, PAR_D, SEMI, ERROR; 
+terminal Integer ENTIER;
+/* non terminaux */
+non terminal liste_expr, expr;
+non terminal Integer expression ;
+
+precedence left PLUS, MOINS;
+precedence left MUL, DIV, MOD;
+precedence left MOINS_UNAIRE;
+
+/* grammaire */
+// on a une liste d'expressions (avec au moins une expression)
+liste_expr  ::= expr liste_expr 
+              | expr  
+              ;
+// chaque expression arithmetique est terminee par un point virgule (SEMI)
+expr 		::= expression:e SEMI   {: if (! erreur) System.out.println("val: "+e); erreur = false; :}
+              | error SEMI          {: erreur = false; :}
+              ;
+expression 	::= ENTIER:e                            {: RESULT = e ; :}
+              | expression:e1 PLUS expression:e2    {: RESULT = e1+e2 ; :}
+              | expression:e1 MOINS expression:e2   {: RESULT = e1-e2 ; :}
+              | MOINS expression:e                  {: RESULT = -e ; :} 	%prec MOINS_UNAIRE
+              | expression:e1 MUL expression:e2     {: RESULT = e1*e2 ; :}
+              | expression:e1 DIV expression:e2     {: if (erreur) { RESULT= 0; } 
+                                                       else if (e2 == 0) { RESULT = 0; erreur=true; System.err.println("Erreur division par zero"); } 
+                                                       else { RESULT = e1/e2; } :}
+              | expression:e1 MOD expression:e2     {: if (erreur) { RESULT= 0; } 
+                                                       else if (e2 == 0) { RESULT = 0; erreur=true; System.err.println("Erreur division par zero"); } 
+                                                       else { RESULT = e1%e2; } :}
+              | PAR_G expression:e PAR_D            {: RESULT = e ; :}
+              ;
+```
