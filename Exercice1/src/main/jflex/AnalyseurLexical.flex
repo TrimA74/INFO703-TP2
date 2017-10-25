@@ -23,6 +23,7 @@ import java_cup.runtime.Symbol;
 
 chiffre 	= [0-9]
 espace 		= \s
+mod 		= "mod"|"MOD"
 
 %% 
 /* ------------------------Section des Regles Lexicales----------------------*/
@@ -34,6 +35,7 @@ espace 		= \s
 "+"			{ return new Symbol(sym.PLUS) ;}
 "-"			{ return new Symbol(sym.MOINS) ;}
 "/"			{ return new Symbol(sym.DIV) ;}
+{mod}		{ return new Symbol(sym.MOD) ;}
 "*"			{ return new Symbol(sym.MUL) ;}
 ";"			{ return new Symbol(sym.SEMI) ;}
 {chiffre}+	{ return new Symbol(sym.ENTIER, new Integer(yytext())) ;}

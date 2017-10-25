@@ -103,3 +103,20 @@ expression ::= ENTIER:e                            {: RESULT = e ; :}
 La règle `expr ::= error SEMI` permet de gérér les erreurs syntaxiques en définissant un point de reprise d'erreur 
 après l'obtention d'un point virgule.
 
+### Prise en compte du moins unaire
+Le moins unaire pose un problème particulier du fait qu'on utilise le même toket que pour l'opérateur binaire moins.
+
+On peut se résoudre en ajoutant ue règle de priorité spécifique : 
+```
+precedence left PLUS, MOINS;
+precedence left MUL, DIV;
+precedence left MOINS_UNAIRE;
+```
+On précise ensuite au niveau de la règle de réécriture la priorité à utitilser :
+```
+expression ::= ENTIER:e                            {: RESULT = e ; :}
+             | expression:e1 PLUS expression:e2    {: RESULT = e1+e2 ; :}
+             | expression:e1 MOINS expression:e2   {: RESULT = e1-e2 ; :}
+             | MOINS expression:e                  {: RESULT = -e ; :}      %prec MOINS_UNAIRE
+             ...
+```
