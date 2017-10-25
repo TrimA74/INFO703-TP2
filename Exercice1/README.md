@@ -80,7 +80,7 @@ Pour calculer les valeur associées au symboles non terminaux, on ajoute des act
 `expression ::= expression:e1 PLUS expression:e2 {: RESULT = e1+e2 ; :} `
 
 On ajoute aussi une action semantique pour afficher la valeur finale de l'expression : 
-`expr`::= expression:e SEMI {: System.out.println("val: "+e); :}
+`expr ::= expression:e SEMI {: System.out.println("val: "+e); :}`
 ```
 /* grammaire */
 // on a une liste d'expressions (avec au moins une expression)
