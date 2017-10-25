@@ -38,9 +38,9 @@ expr 		::= expression:e SEMI   {: System.out.println("val: "+e); :}
 			  ;
 expression 	::= ENTIER:e                            {: RESULT = e ; :}
 			  | expression:e1 PLUS expression:e2    {: RESULT = e1+e2 ; :}
-			  | expression:e1 MOINS expression:e2   {: RESULT = e1+e2 ; :}
-			  | expression:e1 MUL expression:e2     {: RESULT = e1+e2 ; :}
-			  | expression:e1 DIV expression:e2     {: RESULT = e1+e2 ; :}
+			  | expression:e1 MOINS expression:e2   {: RESULT = e1-e2 ; :}
+			  | expression:e1 MUL expression:e2     {: RESULT = e1*e2 ; :}
+			  | expression:e1 DIV expression:e2     {: RESULT = e1/e2 ; :}
 			  | PAR_G expression:e PAR_D            {: RESULT = e ; :}
 			  ;
 
