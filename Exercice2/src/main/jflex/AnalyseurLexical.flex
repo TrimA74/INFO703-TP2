@@ -28,7 +28,7 @@ let			= "let"|"LET"
 // un identifiant commence par une lettre suivit d'un charactere alphanumerique (lettre/chiffre/underscore)
 ident		= [:letter:]\w*
 comment1	= "//".*					 // commentaire uniligne
-comment2	= "/*"([^*]|("*"[^/]))*"/*"  // commentaire multiligne
+comment2	= "/*"([^*]|("*"[^/]))*"*/"  // commentaire multiligne
 comment	= {comment1}|{comment2}	
 
 %% 
