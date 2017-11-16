@@ -8,18 +8,18 @@ import java.util.HashMap;
 action code {: 
     // pour utilisation dans les actions (classe action)
 	// HashMap pour la gestion des variables
-	private HashMap<String,Integer> vars = new HashMap<>();
+	private HashMap<String,Arbre> vars = new HashMap<>();
 	// gestion des erreurs d'evaluation
 	private boolean erreur = false;
 :};
 
- 
+
 parser code {:
     // pour le parser (redefinition de la methode reportant les erreurs d'analyse)
   public void report_error(String message, Object info) {
  	String m = "";
  	if (info instanceof java_cup.runtime.Symbol) {
- 	    Symbol s = ((Symbol) info); 	
+ 	    Symbol s = ((Symbol) info);
  		if (s != null && s.left >= 0 ) {
  			/* Ajoute le numero de ligne  et de colonne*/
  			m =  "Ligne " + (s.left+1) + ", Colonne " + (s.right+1) + " : ";
@@ -35,12 +35,12 @@ parser code {:
 :};
 
 /* symboles terminaux */
-terminal PLUS, MOINS, MOINS_UNAIRE, MUL, DIV, MOD, PAR_G, PAR_D, SEMI, LET, EGAL, ERROR; 
+terminal PLUS, MOINS, MOINS_UNAIRE, MUL, DIV, MOD, PAR_G, PAR_D, SEMI, LET, EGAL, ERROR;
 terminal Integer ENTIER;
 terminal String IDENT;
 /* non terminaux */
-non terminal liste_expr, expr;
-non terminal Integer expression, affectation ;
+non terminal Arbre liste_expr, expr;
+non terminal Arbre expression, affectation ;
 
 precedence left PLUS, MOINS;
 precedence left MUL, DIV, MOD;
@@ -48,31 +48,31 @@ precedence left MOINS_UNAIRE;
 
 /* grammaire */
 // on a une liste d'expressions (avec au moins une expression)
-liste_expr	::= expr liste_expr 
-			  | expr  
+liste_expr	::= expr:e1 liste_expr:e2 {: RESULT = new Arbre(e1,e2,";");:}
+			  | expr:e                   {: RESULT = new Arbre(e,null,";");:}
 			  ;
 // chaque expression arithmetique est terminee par un point virgule (SEMI)
-expr 		::= expression:e SEMI:pv   {: if (! erreur) System.out.println("Ligne "+(pvleft+1)+", Colonne "+(pvright+1)+" : Eval = "+e); erreur = false; :}
-			  | affectation:v SEMI:pv  {: if (! erreur) System.out.println("Ligne "+(pvleft+1)+", Colonne "+(pvright+1)+" : Eval = "+v); erreur = false; :}
+expr 		::= expression:e SEMI:pv   {:  RESULT = e; /*if (! erreur) System.out.println("Ligne "+(pvleft+1)+", Colonne "+(pvright+1)+" : Eval = "+e);*/ erreur = false;:}
+			  | affectation:v SEMI:pv  {:RESULT = v;  /*if (! erreur) System.out.println("Ligne "+(pvleft+1)+", Colonne "+(pvright+1)+" : Eval = "+v);*/ erreur = false; :}
 			  | error SEMI			   {: erreur = false; :}
 			  ;
-			  
-affectation ::= LET IDENT:nom EGAL expression:e 	{: if (! erreur) vars.put(nom,e); RESULT = e; :}
+
+affectation ::= LET IDENT:nom EGAL expression:e 	{: if (! erreur) vars.put(nom,e); RESULT = new Arbre(e,null,"LET " + nom); :}
               ;
 
-expression 	::= ENTIER:e                            {: RESULT = e ; :}
-			  | expression:e1 PLUS expression:e2    {: RESULT = e1+e2 ; :}
-			  | expression:e1 MOINS expression:e2   {: RESULT = e1-e2 ; :}
-			  | MOINS expression:e   				{: RESULT = -e ; :} 	%prec MOINS_UNAIRE
-			  | expression:e1 MUL expression:e2     {: RESULT = e1*e2 ; :}
-			  | expression:e1 DIV expression:e2     {: if (erreur) { RESULT= 0; } 
-													   else if (e2 == 0) { RESULT = 0; erreur=true; System.err.println("Ligne "+(e2left+1)+", Colonne "+(e2right+1)+" : Erreur division par zero"); } 
-													   else { RESULT = e1/e2; } :}
-			  | expression:e1 MOD expression:e2     {: if (erreur) { RESULT= 0; } 
-													   else if (e2 == 0) { RESULT = 0; erreur=true; System.err.println("Ligne "+(e2left+1)+", Colonne "+(e2right+1)+" : Erreur division par zero"); }
-													   else { RESULT = e1%e2; } :}
-			  | PAR_G expression:e PAR_D            {: RESULT = e ; :}
-			  | IDENT:nom                          	{: if(vars.get(nom)!=null) { RESULT = vars.get(nom); } 
-                                                       else { RESULT = 0; erreur=true; System.err.println("Ligne "+(nomleft+1)+", Colonne "+(nomright+1)+" : Erreur variable indefinie"); } :}
+expression 	::= ENTIER:e                            {: RESULT = new Arbre(null,null,e.toString()) ; :}
+			  | expression:e1 PLUS expression:e2    {: RESULT = new Arbre(e1,e2,"+"); :}
+			  | expression:e1 MOINS expression:e2   {: RESULT = new Arbre(e1,e2,"-"); :}
+			  | MOINS expression:e   				{: RESULT = new Arbre(e,null,"-"); :} 	%prec MOINS_UNAIRE
+			  | expression:e1 MUL expression:e2     {: RESULT = new Arbre(e1,e2,"*"); :}
+			  | expression:e1 DIV expression:e2     {: if (erreur) { RESULT= new Arbre(null,null,""); }
+													   else if (Integer.parseInt(e2.getValue()) == 0) { RESULT = new Arbre(null,null,""); erreur=true; System.err.println("Ligne "+(e2left+1)+", Colonne "+(e2right+1)+" : Erreur division par zero"); }
+													   else { RESULT = new Arbre(e1,e2,"/"); } :}
+			  | expression:e1 MOD expression:e2     {: if (erreur) { RESULT= new Arbre(null,null,""); }
+													   else if (Integer.parseInt(e2.getValue()) == 0) { RESULT = new Arbre(null,null,""); erreur=true; System.err.println("Ligne "+(e2left+1)+", Colonne "+(e2right+1)+" : Erreur division par zero"); }
+													   else { RESULT = new Arbre(e1,e2,"%"); } :}
+			  | PAR_G expression:e PAR_D            {: RESULT = new Arbre(null,null,e.toString()); :}
+			  | IDENT:nom                          	{: if(vars.get(nom)!=null) { RESULT = new Arbre(null,null,nom); }
+                                                       else { RESULT = new Arbre(null,null,"0"); erreur=true; System.err.println("Ligne "+(nomleft+1)+", Colonne "+(nomright+1)+" : Erreur variable indefinie"); } :}
 			  ;
 
