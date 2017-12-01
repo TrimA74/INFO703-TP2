@@ -57,7 +57,7 @@ expr 		::= expression:e SEMI:pv   {:  RESULT = e; /*if (! erreur) System.out.pri
 			  | error SEMI			   {: erreur = false; :}
 			  ;
 
-affectation ::= LET IDENT:nom EGAL expression:e 	{: if (! erreur) vars.put(nom,e); RESULT = new Arbre(e,null,"LET " + nom); :}
+affectation ::= LET IDENT:nom EGAL expression:e 	{: if (! erreur) vars.put(nom,e); RESULT = new Arbre(new Arbre(null,null,nom),e,"LET"); :}
               ;
 
 expression 	::= ENTIER:e                            {: RESULT = new Arbre(null,null,e.toString()) ; :}
