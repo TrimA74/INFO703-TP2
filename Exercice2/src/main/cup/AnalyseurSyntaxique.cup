@@ -35,7 +35,7 @@ parser code {:
 :};
 
 /* symboles terminaux */
-terminal PLUS, MOINS, MOINS_UNAIRE, MUL, DIV, MOD, PAR_G, PAR_D, SEMI, LET, EGAL, ERROR;
+terminal PLUS, MOINS, MOINS_UNAIRE, MUL, DIV, MOD, PAR_G, PAR_D, INF,INPUT,IF,DO,WHILE,ELSE,THEN,AND,NOT,OR,INFE, SEMI, LET, EGAL,DEGAL, ERROR,OUTPUT;
 terminal Integer ENTIER;
 terminal String IDENT;
 /* non terminaux */
@@ -45,11 +45,12 @@ non terminal Arbre expression, affectation ;
 precedence left PLUS, MOINS;
 precedence left MUL, DIV, MOD;
 precedence left MOINS_UNAIRE;
+precedence right OR,AND,INF,INFE,EGAL,DEGAL;
 
 /* grammaire */
 // on a une liste d'expressions (avec au moins une expression)
-liste_expr	::= expr:e1 liste_expr:e2 {: RESULT = new Arbre(e1,e2,";");:}
-			  | expr:e                   {: RESULT = new Arbre(e,null,";");:}
+liste_expr	::= expr:e1 liste_expr:e2 {: RESULT = new Arbre(e1,e2,";",sym.SEMI);:}
+			  | expr:e                   {: RESULT = new Arbre(e,null,";",sym.SEMI);:}
 			  ;
 // chaque expression arithmetique est terminee par un point virgule (SEMI)
 expr 		::= expression:e SEMI:pv   {:  RESULT = e; /*if (! erreur) System.out.println("Ligne "+(pvleft+1)+", Colonne "+(pvright+1)+" : Eval = "+e);*/ erreur = false;:}
@@ -57,22 +58,35 @@ expr 		::= expression:e SEMI:pv   {:  RESULT = e; /*if (! erreur) System.out.pri
 			  | error SEMI			   {: erreur = false; :}
 			  ;
 
-affectation ::= LET IDENT:nom EGAL expression:e 	{: if (! erreur) vars.put(nom,e); RESULT = new Arbre(new Arbre(null,null,nom),e,"LET"); :}
+affectation ::= LET IDENT:nom EGAL expression:e 	{: if (! erreur) vars.put(nom,e); RESULT = new Arbre(new Arbre(null,null,nom,sym.IDENT),e,"LET",sym.LET); :}
               ;
 
-expression 	::= ENTIER:e                            {: RESULT = new Arbre(null,null,e.toString()) ; :}
-			  | expression:e1 PLUS expression:e2    {: RESULT = new Arbre(e1,e2,"+"); :}
-			  | expression:e1 MOINS expression:e2   {: RESULT = new Arbre(e1,e2,"-"); :}
-			  | MOINS expression:e   				{: RESULT = new Arbre(e,null,"-"); :} 	%prec MOINS_UNAIRE
-			  | expression:e1 MUL expression:e2     {: RESULT = new Arbre(e1,e2,"*"); :}
-			  | expression:e1 DIV expression:e2     {: if (erreur) { RESULT= new Arbre(null,null,""); }
-													   else if (Integer.parseInt(e2.getValue()) == 0) { RESULT = new Arbre(null,null,""); erreur=true; System.err.println("Ligne "+(e2left+1)+", Colonne "+(e2right+1)+" : Erreur division par zero"); }
-													   else { RESULT = new Arbre(e1,e2,"/"); } :}
-			  | expression:e1 MOD expression:e2     {: if (erreur) { RESULT= new Arbre(null,null,""); }
-													   else if (Integer.parseInt(e2.getValue()) == 0) { RESULT = new Arbre(null,null,""); erreur=true; System.err.println("Ligne "+(e2left+1)+", Colonne "+(e2right+1)+" : Erreur division par zero"); }
-													   else { RESULT = new Arbre(e1,e2,"%"); } :}
-			  | PAR_G expression:e PAR_D            {: RESULT = new Arbre(null,null,e.toString()); :}
-			  | IDENT:nom                          	{: if(vars.get(nom)!=null) { RESULT = new Arbre(null,null,nom); }
-                                                       else { RESULT = new Arbre(null,null,"0"); erreur=true; System.err.println("Ligne "+(nomleft+1)+", Colonne "+(nomright+1)+" : Erreur variable indefinie"); } :}
+expression 	::= ENTIER:e                            {: RESULT = new Arbre(null,null,e.toString(),sym.ENTIER) ; :}
+			  | expression:e1 PLUS expression:e2    {: RESULT = new Arbre(e1,e2,"+",sym.PLUS); :}
+			  | IF PAR_G expression:e1 PAR_D THEN PAR_G liste_expr:e2 PAR_D ELSE PAR_G liste_expr:e3 PAR_D  {: RESULT = new Arbre(e1,new Arbre(e2,e3,"THEN",sym.THEN),"IF",sym.IF); :}
+			  | IF PAR_G expression:e1 PAR_D THEN PAR_G liste_expr:e2 PAR_D   {: RESULT = new Arbre(e1,new Arbre(e2,null,"THEN",sym.THEN),"IF",sym.IF); :}
+			  | WHILE PAR_G expression:e1 PAR_D DO PAR_G liste_expr:e2 PAR_D  {: RESULT = new Arbre(e1,e2,"WHILE",sym.WHILE); :}
+			  | expression:e1 INF expression:e2    {: RESULT = new Arbre(e1,e2,"<",sym.INF); :}
+			  | expression:e1 INFE expression:e2    {: RESULT = new Arbre(e1,e2,"<=",sym.INFE); :}
+			  | expression:e1 DEGAL expression:e2    {: RESULT = new Arbre(e1,e2,"=",sym.DEGAL); :}
+			  | expression:e1 AND expression:e2    {: RESULT = new Arbre(e1,e2,"and",sym.AND); :}
+			  | expression:e1 OR expression:e2    {: RESULT = new Arbre(e1,e2,"or",sym.OR); :}
+			  | NOT expression:e1    {: RESULT = new Arbre(e1,null,"not",sym.NOT); :}
+			  | OUTPUT IDENT:nom {: RESULT =  new Arbre(vars.get(nom),null,nom,sym.OUTPUT);  :}
+			  | INPUT  {: RESULT = new Arbre(null, null, "input", sym.INPUT); :}
+			  | expression:e1 MOINS expression:e2   {: RESULT = new Arbre(e1,e2,"-",sym.MOINS); :}
+			  | MOINS expression:e   				{: RESULT = new Arbre(e,null,"-",sym.MOINS_UNAIRE); :} 	%prec MOINS_UNAIRE
+			  | expression:e1 MUL expression:e2     {: RESULT = new Arbre(e1,e2,"*",sym.MUL); :}
+			  | expression:e1 DIV expression:e2     {: if (erreur) { RESULT= new Arbre(null,null,"",sym.ERROR); }
+													   else if (Integer.parseInt(e2.getValue()) == 0) { RESULT = new Arbre(null,null,"",sym.ERROR); erreur=true; System.err.println("Ligne "+(e2left+1)+", Colonne "+(e2right+1)+" : Erreur division par zero"); }
+													   else { RESULT = new Arbre(e1,e2,"/",sym.DIV); } :}
+			  | expression:e1 MOD expression:e2     {: if (erreur) { RESULT= new Arbre(null,null,"mod",sym.ERROR); }
+													   else if (Integer.parseInt(e2.getLeft().getValue()) == 0) { RESULT = new Arbre(null,null,"",sym.ERROR); erreur=true; System.err.println("Ligne "+(e2left+1)+", Colonne "+(e2right+1)+" : Erreur division par zero"); }
+													   else { RESULT = new Arbre(e1,e2,"mod",sym.MOD); } :}
+			  | PAR_G expression:e PAR_D            {: RESULT = e; :}
+			  | IDENT:nom                          	{: if(vars.get(nom)!=null) { RESULT = new Arbre(vars.get(nom),null,nom,sym.IDENT); }
+                                                       else { RESULT = new Arbre(null,null,"",sym.ERROR); erreur=true; System.err.println("Ligne "+(nomleft+1)+", Colonne "+(nomright+1)+" : Erreur variable indefinie"); } :}
+			  //| affectation
+			  //| LET IDENT:nom EGAL expression:e 	{: if (! erreur) vars.put(nom,e); RESULT = new Arbre(new Arbre(null,null,nom,sym.IDENT),e,"LET",sym.LET); :}
 			  ;
 

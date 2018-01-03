@@ -3,6 +3,10 @@ package fr.usmb.m1isc.compilation.tp1;
 
 import java.io.FileReader;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 import java_cup.runtime.Symbol;
 
 public class Main {
@@ -18,6 +22,11 @@ public class Main {
 
 		Symbol s = p.parse( );
 		Arbre a = (Arbre) s.value;
+
+		GenerateurASM gA = new GenerateurASM(a);
+		Files.write(Paths.get("D:\\Documents\\M1\\INFO703\\INFO703-TP2\\newtest.asm"), gA.getCodeASM().getBytes());
+		//gA.toString();
+
 		a.toString();
 	}
 

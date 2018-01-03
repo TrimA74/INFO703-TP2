@@ -7,6 +7,11 @@ public class Arbre {
     private Arbre left;
     private Arbre right;
     private String value;
+
+    public Integer getSymbol() {
+        return symbol;
+    }
+
     private Integer symbol;
 
     public Arbre getLeft() {
@@ -33,11 +38,12 @@ public class Arbre {
         this.value = value;
     }
 
-    public Arbre(Arbre left, Arbre right, String value) {
+    public Arbre(Arbre left, Arbre right, String value, Integer symbol) {
 
         this.left = left;
         this.right = right;
         this.value = value;
+        this.symbol = symbol;
     }
     public static void parcoursProfondeur (Arbre a){
         System.out.print("(");

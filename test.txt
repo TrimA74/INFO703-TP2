@@ -1,2 +1,2 @@
 let prixHT = 200;
-let prixTtc = prixHT * 119 / 100;
+let prixTtc = ((prixHT+5) * (25-32)) / 100;
